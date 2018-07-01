@@ -71,6 +71,10 @@ describe('Showdown', function () {
       expect(showdownProvider.$get().makeHtml(markdown)).to.be.equal(parsedHtml);
     });
 
+    it('should parse html', function () {
+      expect(showdownProvider.$get().makeMarkdown(parsedHtml)).to.be.equal(markdown);
+    });
+
   });
 
   describe('strip filter', function () {

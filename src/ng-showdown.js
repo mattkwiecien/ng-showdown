@@ -21,6 +21,7 @@
     .provider('$showdown', ngShowdown)
     .directive('sdModelToHtml', ['$showdown', '$sanitize', '$sce', sdModelToHtmlDirective]) //<-- DEPRECATED: will be removed in the next major version release
     .directive('markdownToHtml', ['$showdown', '$sanitize', '$sce', markdownToHtmlDirective])
+    .directive('htmlToMarkdown', ['$showdown', '$sanitize', '$sce', htmlToMarkdownDirective])
     .filter('sdStripHtml', ['$showdown', stripHtmlFilter]) //<-- DEPRECATED: will be removed in the next major version release
     .filter('stripHtml', ['$showdown', stripHtmlFilter]);
 
@@ -88,6 +89,16 @@
        */
       this.makeHtml = function (markdown) {
         return converter.makeHtml(markdown);
+      };
+
+      /**
+       * Converts a markdown text into HTML
+       *
+       * @param {string} html The html string to be converted to markdown
+       * @returns {string} The converted markdown
+       */
+      this.makeMarkdown = function (html) {
+        return converter.makeMarkdown(html);
       };
 
       /**
@@ -190,6 +201,42 @@
           scope.trustedHtml = ($showdown.getOption('sanitize')) ? $sanitize(showdownHTML) : $sce.trustAsHtml(showdownHTML);
         } else {
           scope.trustedHtml = typeof newValue;
+        }
+      });
+    };
+  }
+
+  /**
+   * AngularJS Directive to HTML to Md transformation
+   *
+   * Usage example:
+   * <div html-to-markdown="markdownText" ></div>
+   *
+   * @param {showdown.Converter} $showdown
+   * @param {$sanitize} $sanitize
+   * @param {$sce} $sce
+   * @returns {*}
+   */
+  function htmlToMarkdownDirective($showdown, $sanitize, $sce) {
+    return {
+      restrict: 'A',
+      link: getMdLinkFn($showdown, $sanitize, $sce),
+      scope: {
+        model: '=htmlToMarkdown'
+      },
+      template: '<div ng-bind="trustedMd"></div>'
+    };
+  }
+
+  function getMdLinkFn($showdown, $sanitize, $sce) {
+    return function (scope, element, attrs) {
+      scope.$watch('model', function (newValue) {
+        var showdownMd;
+        if (typeof newValue === 'string') {
+          showdownMd = $showdown.makeMarkdown(newValue);
+          scope.trustedMd = ($showdown.getOption('sanitize')) ? $sanitize(showdownMd) : $sce.trustAsHtml(showdownMd);
+        } else {
+          scope.trustedMd = typeof newValue;
         }
       });
     };
